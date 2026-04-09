@@ -35,7 +35,7 @@ function $convertMentionElement(
   if (textContent !== null) {
     const node = $createMentionNode(
       typeof mentionName === 'string' ? mentionName : textContent,
-      textContent,
+      // textContent,
     );
     return {
       node,
@@ -121,10 +121,10 @@ export class MentionNode extends TextNode {
 
 export function $createMentionNode(
   mentionName: string,
-  textContent?: string,
+  // textContent?: string,
 ): MentionNode {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const mentionNode = new MentionNode(mentionName, (textContent = mentionName));
+  const mentionNode = new MentionNode(mentionName);
   mentionNode.setMode('segmented').toggleDirectionless();
   return $applyNodeReplacement(mentionNode);
 }
