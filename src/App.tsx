@@ -38,6 +38,7 @@ import {
 import { mdxEditorEmojiPickerPlugin } from './emoji/mdxEditorEmojiPickerPlugin'
 import { mdxEditorMentionsPlugin } from './mentions/mdxEditorMentionsPlugin'
 import './popover-styles.css'
+import './wiki-theme.css'
 import { dummyMentionsData } from './usersToMention'
 import { loadPages, savePages, WikiPage } from './wikiPages'
 
@@ -330,7 +331,7 @@ export default function App() {
 
   return (
     <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
-      <div className={styles.app}>
+      <div className={`${styles.app} ${isDark ? 'app-dark' : 'app-light'}`}>
         <aside className={styles.sidebar}>
           <Title3>Wiki Pages</Title3>
 

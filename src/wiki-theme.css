@@ -1,0 +1,26 @@
+.app-dark .mdxeditor,
+.app-dark .mdxeditor p,
+.app-dark .mdxeditor li,
+.app-dark .mdxeditor h1,
+.app-dark .mdxeditor h2,
+.app-dark .mdxeditor h3,
+.app-dark .mdxeditor h4,
+.app-dark .mdxeditor h5,
+.app-dark .mdxeditor h6,
+.app-dark .mdxeditor blockquote,
+.app-dark .mdxeditor code,
+.app-dark .mdxeditor .cm-content,
+.app-dark .mdxeditor .cm-line,
+.app-dark .mdxeditor .cm-scroller {
+  color: var(--colorNeutralForeground1) !important;
+}
+
+.app-dark .mdxeditor {
+  background-color: var(--colorNeutralBackground1) !important;
+}
+
+.app-dark .mdxeditor-toolbar,
+.app-dark .mdxeditor-toolbar * {
+  color: var(--colorNeutralForeground1) !important;
+  background-color: var(--colorNeutralBackground2) !important;
+}
