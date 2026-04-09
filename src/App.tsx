@@ -22,13 +22,84 @@ import '@mdxeditor/editor/style.css'
 import { $getRoot, $isTextNode, ElementNode, LexicalNode } from 'lexical'
 import React, { FC, useEffect, useMemo, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
+import {
+  Button,
+  FluentProvider,
+  Input,
+  makeStyles,
+  shorthands,
+  Switch,
+  Text,
+  Title3,
+  tokens,
+  webDarkTheme,
+  webLightTheme
+} from '@fluentui/react-components'
 import { mdxEditorEmojiPickerPlugin } from './emoji/mdxEditorEmojiPickerPlugin'
 import { mdxEditorMentionsPlugin } from './mentions/mdxEditorMentionsPlugin'
 import './popover-styles.css'
 import { dummyMentionsData } from './usersToMention'
 import { loadPages, savePages, WikiPage } from './wikiPages'
 
-type TocHeading = { level: number, content: string }
+type TocHeading = { level: number; content: string }
+
+const useStyles = makeStyles({
+  app: {
+    display: 'flex',
+    height: '100vh',
+    backgroundColor: tokens.colorNeutralBackground1,
+    color: tokens.colorNeutralForeground1
+  },
+  sidebar: {
+    width: '280px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalM,
+    ...shorthands.padding(tokens.spacingVerticalL, tokens.spacingHorizontalM),
+    ...shorthands.borderRight('1px', 'solid', tokens.colorNeutralStroke1)
+  },
+  pageList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: tokens.spacingVerticalXS
+  },
+  pageButton: {
+    justifyContent: 'flex-start'
+  },
+  selectedPageButton: {
+    backgroundColor: tokens.colorNeutralBackground3
+  },
+  main: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    ...shorthands.padding(tokens.spacingVerticalL, tokens.spacingHorizontalL),
+    gap: tokens.spacingVerticalM
+  },
+  toolbarRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: tokens.spacingHorizontalM
+  },
+  titleInput: {
+    maxWidth: '560px'
+  },
+  editorShell: {
+    flex: 1,
+    minHeight: 0,
+    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke1),
+    ...shorthands.borderRadius(tokens.borderRadiusLarge),
+    ...shorthands.padding(tokens.spacingVerticalM, tokens.spacingHorizontalM),
+    backgroundColor: tokens.colorNeutralBackground1
+  },
+  rightControls: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: tokens.spacingHorizontalL
+  }
+})
 
 const currentHeadings$ = Cell<TocHeading[]>([], (r) => {
   r.pub(createRootEditorSubscription$, (editor) => {
@@ -59,7 +130,7 @@ const TOCEditor: FC<JsxEditorProps> = () => {
 
   return (
     <div>
-      TOC
+      <Text weight="semibold">TOC</Text>
       <ul>
         {headings.map((heading, idx) => (
           <li key={`${heading.level}-${heading.content}-${idx}`}>
@@ -180,11 +251,16 @@ const editorPlugins = [
 ]
 
 export default function App() {
+  const styles = useStyles()
   const [pages, setPages] = useState<WikiPage[]>([])
   const [selectedPageId, setSelectedPageId] = useState<string>('')
   const [isEditing, setIsEditing] = useState(false)
+  const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    setIsDark(prefersDark)
+
     const loadedPages = loadPages()
     setPages(loadedPages)
     if (loadedPages.length > 0) {
@@ -192,10 +268,7 @@ export default function App() {
     }
   }, [])
 
-  const selectedPage = useMemo(
-    () => pages.find((page) => page.id === selectedPageId) ?? null,
-    [pages, selectedPageId]
-  )
+  const selectedPage = useMemo(() => pages.find((page) => page.id === selectedPageId) ?? null, [pages, selectedPageId])
 
   function upsertPages(nextPages: WikiPage[]) {
     setPages(nextPages)
@@ -256,62 +329,69 @@ export default function App() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <aside style={{ width: 240, borderRight: '1px solid #ccc', padding: 12 }}>
-        <h3>Wiki Pages</h3>
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {pages.map((page) => (
-            <li key={page.id}>
-              <button
-                style={{
-                  background: page.id === selectedPageId ? '#eef' : 'transparent',
-                  border: 'none',
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: 6,
-                  cursor: 'pointer'
-                }}
+    <FluentProvider theme={isDark ? webDarkTheme : webLightTheme}>
+      <div className={styles.app}>
+        <aside className={styles.sidebar}>
+          <Title3>Wiki Pages</Title3>
+
+          <div className={styles.pageList}>
+            {pages.map((page) => (
+              <Button
+                key={page.id}
+                className={page.id === selectedPageId ? styles.selectedPageButton : styles.pageButton}
+                appearance={page.id === selectedPageId ? 'secondary' : 'subtle'}
                 onClick={() => setSelectedPageId(page.id)}
               >
                 {page.title}
-              </button>
-            </li>
-          ))}
-        </ul>
+              </Button>
+            ))}
+          </div>
 
-        <button onClick={handleCreatePage} style={{ marginTop: 12 }}>
-          + New Page
-        </button>
-      </aside>
+          <Button appearance="primary" onClick={handleCreatePage}>
+            New Page
+          </Button>
+        </aside>
 
-      <main style={{ flex: 1, padding: 16, overflow: 'auto' }}>
-        {selectedPage && (
-          <>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-              <input
-                aria-label="Page title"
-                title="Page title"
-                placeholder="Page title"
-                value={selectedPage.title}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                style={{ fontSize: 20, width: '100%', maxWidth: 500 }}
-              />
-              <button onClick={() => setIsEditing((v) => !v)}>
-                {isEditing ? 'Preview' : 'Edit'}
-              </button>
-            </div>
+        <main className={styles.main}>
+          {selectedPage && (
+            <>
+              <div className={styles.toolbarRow}>
+                <Input
+                  className={styles.titleInput}
+                  aria-label="Page title"
+                  contentBefore={<Text weight="semibold">Title</Text>}
+                  value={selectedPage.title}
+                  onChange={(_, data) => handleTitleChange(data.value)}
+                />
 
-            <MDXEditor
-              key={selectedPage.id}
-              readOnly={!isEditing}
-              markdown={selectedPage.content}
-              plugins={editorPlugins}
-              onChange={handleContentChange}
-            />
-          </>
-        )}
-      </main>
-    </div>
+                <div className={styles.rightControls}>
+                  <Switch
+                    label={isEditing ? 'Edit mode' : 'Preview mode'}
+                    checked={isEditing}
+                    onChange={(_, data) => setIsEditing(data.checked)}
+                  />
+                  <Switch
+                    label={isDark ? 'Dark theme' : 'Light theme'}
+                    checked={isDark}
+                    onChange={(_, data) => setIsDark(data.checked)}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.editorShell}>
+                <MDXEditor
+                  key={selectedPage.id}
+                  readOnly={!isEditing}
+                  markdown={selectedPage.content}
+                  plugins={editorPlugins}
+                  onChange={handleContentChange}
+                />
+              </div>
+            </>
+          )}
+        </main>
+      </div>
+    </FluentProvider>
   )
 }
 
